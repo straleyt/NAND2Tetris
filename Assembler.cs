@@ -51,7 +51,7 @@ namespace assembler
 
                string inputFileName;
 
-               Console.Write("Enter in the .asm file you wish to convert to .hack : ");
+               Console.WriteLine("Enter in the .asm file you wish to convert to .hack : ");
                inputFileName = Console.ReadLine();
                Console.WriteLine("you entered " + inputFileName);
 
