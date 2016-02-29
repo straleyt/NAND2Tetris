@@ -49,14 +49,41 @@ namespace assembler
                var inputFileList = new List<String>();
                var outputFileList = new List<String>();
 
-               string inputFileName;
-
-               Console.WriteLine("Enter in the .asm file you wish to convert to .hack : ");
-               inputFileName = Console.ReadLine();
-               Console.WriteLine("you entered " + inputFileName);
+               openFiles(inputFileList);
 
           }//end of main
+
+          public static List<String> openFiles(List<String> inputFileList)
+		{
+			string asmFileName;
+			Console.WriteLine("Enter in the .asm file you wish to convert to .hack : ");
+			asmFileName = Console.ReadLine();
+			
+			if(File.Exists(asmFileName)){
+                    //start reading line by line until EOF 
+                    string[] lines = System.IO.File.ReadAllLines(asmFileName);
+                    for (int i = 0; i < lines.Length; i++)
+                    {
+                         string noWhiteSpacesLine = lines[i].Replace(" ", "");
+                         Console.WriteLine(noWhiteSpacesLine);
+                    }
+				    
+			  
+               }//end of if
+			else{
+				Console.WriteLine("Sorry you entered an invalid file name!\n Program terminating...\n");
+			}//end of else
+
+               return inputFileList;
+				
+			
+			
+			
+			
+		}//end of readFile
+
 
 
      }//end of Assembler
 }//end of namespace
+
