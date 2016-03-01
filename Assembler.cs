@@ -7,7 +7,9 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Text.RegularExperssions;
 using System.Collections.Generic;
 
 namespace assembler
@@ -65,7 +67,10 @@ namespace assembler
                     for (int i = 0; i < lines.Length; i++)
                     {
                          string noWhiteSpacesLine = lines[i].Replace(" ", "");
-                         Console.WriteLine(noWhiteSpacesLine);
+                         Console.WriteLine(noWhiteSpacesLine); // will this save to file or just write it out onto screen? 
+                         
+                        List<string> fileContents = controlFile.text.StripComments();
+			foreach (string ln in lines) Debug.Log(ln);
                     }
 				    
 			  
@@ -76,14 +81,35 @@ namespace assembler
 
                return inputFileList;
 				
-			
-			
-			
-			
 		}//end of readFile
-
-
+		
+//*********** CLASS DEC/DEF *************
+public static class ExtensionsSystem //new class to take in 
+{
+	List<string> StripComments(this string inputFileList) //takes in the input file
+	{
+		List<string> result = new List<string>(inputFileList.Split(new string[] {"\r", "\n"}, 
+		StringSplitOptions.RemoveEmptyEntries) 
+		); //uses array to look through file
+	result = result
+		.Where(line => !(line.StartsWith("//") || line.StartsWith("#"))) // where there is a line comment
+		.ToList(); // not sure...
+		
+		return result; 
+			
+	}//end of StripComments definition
+	
+}//end of class dec/def
 
      }//end of Assembler
 }//end of namespace
 
+
+
+//**** Options? ****
+// Found this, we could write to a new file that exclused both white space and comments
+// var t= Path.GetTempFileName();
+// var l= File.ReadLines(fileName).Where(l => !l.StartsWith("//") || !l.StartsWith("#"));
+// File.WriteAllLines(t, l);
+// File.Delete(fileName);
+// File.Move(t, fileName);
