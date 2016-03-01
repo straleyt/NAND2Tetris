@@ -40,6 +40,8 @@ namespace assembler
 			{"R13", 13},
 			{"R14", 14},
 			{"R15", 15},
+			{"SCREEN" 0x4000},
+			{"KBD" 0x6000}
 		};
 
      }//end of SymbolTable
