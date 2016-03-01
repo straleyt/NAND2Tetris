@@ -70,7 +70,8 @@ namespace assembler
                          Console.WriteLine(noWhiteSpacesLine); // will this save to file or just write it out onto screen? 
                          
                         List<string> fileContents = controlFile.text.StripComments();
-			foreach (string ln in lines) Debug.Log(ln);
+			foreach (string ln in lines) Debug.Log(ln); //don't know if this line is effective. 
+			//foreach steps through each line or element of array like a for loop
                     }
 				    
 			  
