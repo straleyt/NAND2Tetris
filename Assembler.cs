@@ -16,16 +16,18 @@ namespace Assembler
 {
      class Assembler
      {
+     	enum Parser_CommandType {Parser_NO_COMMAND=0, Parser_A_COMMAND, Parser_C_COMMAND, Parser_L_COMMAND };
+     	
      	//GLOBAL VARIABLES
-     	int lineNo;
+     	int lineNo = 0; // should start out at zero?
      	string line;
      	string symbol;
      	string dest;
      	string comp;
      	string jump;
-     	commandType = Parser.CommandType();
+     	Parser_CommandType commandType;
      	
-     	
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~MAIN FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
           public static void Main(string[] args)
           {
 		string asmFileName;
@@ -33,22 +35,72 @@ namespace Assembler
 		asmFileName = Console.ReadLine();
 			
 		if(File.Exists(asmFileName)){
-                	//start reading line by line until EOF 
-                	string[] lines = System.IO.File.ReadAllLines(asmFileName);
+                	while ((line = asmFileName.ReadLine()) != null) { //line by line each loop through
+                	
+                		parseLine(); 
+                		pass1();
+                		
+                		lineNo++; 
+                	}
+                
                	}//end of if
-		else{
+		else{//incorrect file name
 			Console.WriteLine("Sorry you entered an invalid file name!\n Program terminating...\n");
 		}//end of else
 		
+		//surround this with a while like before ??? 
+		parseLine(); 
+                pass2(); //writes to the output file .hack      
 		
-		parseLine();
-		pass1();
-		parseLine();
-		pass2();
-
           }//end of main
 
-         
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~PARSE FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void parseLines(){ //takes out white space & comments
+	//set most global variables to null 
+     	symbol = NULL;
+     	dest = NULL;
+     	comp = NULL;
+     	jump = NULL
+     	commandType = Parser_NO_COMMAND;
+     	bool keepGoing = true;
+
+     	//create char array to fill with 
+     	char[] parsedLine = new char[line.length];
+     	int j = 0; //line counter for parsedLine
+     
+     	//get rid of white space
+     	for (int i = 0; i < line.length && keepGoing == true; i++){
+     		
+     		if(line[i] == '/'){
+     			if(line[i+1] == '/'){
+     				//comment has been found! Don't copy any of the rest of the line
+     				keepGoing = false; //set keepGoing to false and will fall out of for loop
+     			}
+     		}
+     		else(line[i].isAlpha()){ //isAlpha in c#?
+     			parsedLine[j] = line[i];
+     		}
+     		
+     	}
+     	
+     	//get rid of comments
+     	
+	
+}
+   
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~PASS1 FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void pass1(){ //takes out white space & comments
+
+	//purpose:  to add new (SYMBOLS) to the SymbolTable
+	
+}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~PASS2 FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void pass2(){ //takes out white space & comments
+
+     //purpose to convert line (parsed line?) to binary and write each line to the outfile
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~END OF PASS2 FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
 /*		
 //*********** CLASS DEC/DEF *************
 public static class ExtensionsSystem //new class to take in 
