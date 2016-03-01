@@ -1,14 +1,15 @@
 # NAND2Tetris
 
-//IN MAIN 
+IN MAIN 
 enum Parser_Command{ All the parsers can be passed into here };
 while ((line = file.ReadLine()) != null)) //grabs a line
   
     increment lineNum
     call ParseLine(); 
     begind swtich statement that will determine what to do 
-    
-//********GLOBALS 
+
+GLOBALS 
+
 int lineNo;
 string line;
 string symbol;
