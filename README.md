@@ -8,11 +8,13 @@ while ((line = file.ReadLine()) != null)) //grabs a line
     call ParseLine(); 
     begind swtich statement that will determine what to do 
     
-    
-int lineNo
-string line
-string symbol 
+//********GLOBALS 
+int lineNo;
+string line;
+string symbol;
 string dest, comp, jmp; 
+commandType = Parser.CommandType();
+
 
 create a function for FIRSTPASS //get rid of white space and build symbol table (we made this with r0-r15) dest, cmp and comp, go in a c-table class with all the c commands, dest table with all restinations, and jump table with all jump commands
 
