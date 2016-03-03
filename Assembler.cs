@@ -1,4 +1,3 @@
-
 //TEGAN STRALEY & CATIE COOK
 //FILE: Assembler.cs
 //PROJECT: created for project 6 of NAND2Tetris course
@@ -20,13 +19,16 @@ namespace AssemblerLab
         enum Parser_CommandType { Parser_NO_COMMAND = 0, Parser_A_COMMAND, Parser_C_COMMAND, Parser_L_COMMAND };
 
         //GLOBAL VARIABLES
-        int lineNo = 0; // should start out at zero?
+        int lineNo = 16; // should start out at zero?
         string line;
         string symbol;
         string dest;
         string comp;
         string jump;
         Parser_CommandType commandType;
+        bool keepGoing;
+        bool secondTimeThrough = false; 
+
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~PARSE FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         public void parseLine()
@@ -36,11 +38,11 @@ namespace AssemblerLab
             dest = null;
             comp = null;
             jump = null;
-
+            Assembler assembler = new Assembler();
 
             //commandType = Parser_NO_COMMAND;
-            bool keepGoing = true;
-            Regex regex = new Regex("^[a-zA-Z0-9]*$");
+            keepGoing = true;
+            Regex regex = new Regex("^[a-zA-Z0-9]*$@()"); //should @ be in here?
 
             //create char array to fill with 
             char[] parsedLine = new char[line.Length];
@@ -61,69 +63,114 @@ namespace AssemblerLab
                 else if (regex.IsMatch(line[i].ToString()))
                 {
                     parsedLine[j] = line[i];
+                    j++; //only increment j if [a-zA-Z0-9]*$ has been found in line[i]
                 }
 
             }
 
-            //get rid of comments
+            string parsedString = new string(parsedLine);
+            Console.WriteLine("ParsedLine: " + parsedString);
+
+
+            if (keepGoing == true && secondTimeThrough == false)
+            {
+                assembler.pass1(parsedLine);
+            }
+
+            if(keepGoing == true && secondTimeThrough == true)
+            {
+                assembler.pass2(parsedLine);
+            }
 
 
         }
-
-
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~MAIN FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         public static void Main(string[] args)
         {
             Assembler assembler = new Assembler();
-            string asmFileName;
             Console.WriteLine("Enter in the .asm file you wish to convert to .hack : ");
-            asmFileName = Console.ReadLine();
+            string asmFileName = Console.ReadLine();
             string line;
-            
 
-            if (File.Exists(@"c:\" + asmFileName + ".txt"))
+            asmFileName = "C:\\Users\\Tegan\\Desktop\\COLLEGE WORK\\Spring 2016\\NAND2Tetris\nand2tetris\nand2tetris\\projects\06\\AssemblerLab\\" + asmFileName + ".asm";
+            Console.WriteLine("FILE:  \n" + asmFileName);
+            if (System.IO.File.Exists(asmFileName) == true)
             {
-                System.IO.StreamReader file = new System.IO.StreamReader(asmFileName + ".txt");
+                System.IO.StreamReader file = new System.IO.StreamReader(asmFileName);
                 while ((line = file.ReadLine()) != null)
                 { //line by line each loop through
-                    Console.WriteLine("GOT INTO while ! \n");
+                    Console.WriteLine("FILE IS OKAY AND FOUND ! \n");
                     asmFileName = Console.ReadLine();
                     assembler.parseLine();
-                    //pass1();
 
-                    assembler.lineNo++;
                 }
 
             }//end of if
             else {//incorrect file name
                 Console.WriteLine("Sorry you entered an invalid file name!\n Program terminating...\n");
                 asmFileName = Console.ReadLine(); // just here so VS window doesn't close as quick
-            }//end of else
-
-            //surround this with a while like before ??? 
-            //parseLine();
-            //pass2(); //writes to the output file .hack      
+            }//end of else  
 
         }//end of main
 
 
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~PASS1 FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        void pass1()
+        void pass1(char[] parsedLine)
         { //takes out white space & comments
 
-            //purpose:  to add new (SYMBOLS) to the SymbolTable
+            //purpose:  to add new (SYMBOLS) to the SymbolTable            //add the (SYMBOLS) to the SymbolTable THIS SHOULD BE IN PARSE 1????????????
+            if (parsedLine[0] == '(' && keepGoing == true)
+            {
+                //read til the next ')'
+                int startIndex = line.IndexOf('(');
+                int endIndex = line.IndexOf(')');
+                string parsedString = new string(parsedLine);
+                string newSymbol = parsedString.Substring(startIndex + 1, endIndex - 1);
+                //add to dictionary
+                SymbolTable.symbolTable.Add(newSymbol, lineNo);
+                lineNo++; //everytime new smymbol added we need to increment lineNo 
 
+                Console.WriteLine("The symbol that was added was  : " + newSymbol + " , " + lineNo);
+            }
+
+            secondTimeThrough = true;
         }
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~PASS2 FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        void pass2()
+        void pass2(char [] parsedLine)
         { //takes out white space & comments
-
             //purpose to convert line (parsed line?) to binary and write each line to the outfile
+            //A INSTRUCTION
+            if (parsedLine[0] == '@')
+            {
+                string parsedString = new string(parsedLine);
+                int startIndex = parsedString.IndexOf('@');
+                int endIndex = parsedString.IndexOf(parsedString[parsedString.Length]);
+                string aInstruc = parsedString.Substring(startIndex + 1, endIndex);
+
+                //check if it is in the SymbolTable.symbolTable
+               /* if (SymbolTable.symbolTable[aInstruc] != null)
+                {
+
+                }
+                */
+            }
+
+            //C INSTRUCTION
+
+
+
+            //L () INSTRUCTION
+
+
+
+
+
+
         }
-    }
-}
+    }//end of class Assembler
+}//end of namespace AssemblerLab
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~END OF PASS2 FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
         /*		
         //*********** CLASS DEC/DEF *************
