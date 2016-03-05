@@ -92,19 +92,30 @@ namespace AssemblerLab
             string asmFileName = Console.ReadLine();
             string line;
 
-            asmFileName = "C:\\Users\\Tegan\\Desktop\\COLLEGE WORK\\Spring 2016\\NAND2Tetris\nand2tetris\nand2tetris\\projects\06\\AssemblerLab\\" + asmFileName + ".asm";
-            Console.WriteLine("FILE:  \n" + asmFileName);
-            if (System.IO.File.Exists(asmFileName) == true)
+            /*IN CLASS how to 
+
+            StreamReader file = new StreamReader(inFileName);
+
+
+            */
+
+            string filePath = System.IO.Path.GetFullPath( asmFileName + ".asm");
+            Console.WriteLine("FILE:  \n" + filePath);
+           StreamReader sr = new StreamReader(filePath);
+            //asmFileName = "C:\\Users\\Tegan\\Desktop\\COLLEGE WORK\\Spring 2016\\NAND2Tetris\nand2tetris\nand2tetris\\projects\06\\AssemblerLab\\" + asmFileName + ".asm";
+            //Console.WriteLine("FILE:  \n" + asmFileName);
+            if (File.Exists(filePath))
             {
-                System.IO.StreamReader file = new System.IO.StreamReader(asmFileName);
-                while ((line = file.ReadLine()) != null)
+                Console.WriteLine("YAY!");
+                //System.IO.StreamReader file = new System.IO.StreamReader(asmFileName);
+               /* while ((line = filePath.ReadLine()) != null)
                 { //line by line each loop through
                     Console.WriteLine("FILE IS OKAY AND FOUND ! \n");
                     asmFileName = Console.ReadLine();
                     assembler.parseLine();
 
-                }
-
+                } 
+                */
             }//end of if
             else {//incorrect file name
                 Console.WriteLine("Sorry you entered an invalid file name!\n Program terminating...\n");
