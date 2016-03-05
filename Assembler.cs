@@ -16,6 +16,15 @@ namespace AssemblerLab
 {
     class Assembler
     {
+      //  const string errorFileName = "AssemblerError.txt";
+      //  StreamWriter errorFile = new StreamWriter(errorFileName);
+   
+
+        public Assembler()
+        {
+
+        }
+
         enum Parser_CommandType { Parser_NO_COMMAND = 0, Parser_A_COMMAND, Parser_C_COMMAND, Parser_L_COMMAND };
 
         //GLOBAL VARIABLES
@@ -31,7 +40,7 @@ namespace AssemblerLab
 
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~PARSE FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        public void parseLine()
+        public void parseLine(string line)
         { //takes out white space & comments
           //set most global variables to null 
             symbol = null;
@@ -39,6 +48,9 @@ namespace AssemblerLab
             comp = null;
             jump = null;
             Assembler assembler = new Assembler();
+
+            Console.WriteLine("GOT INTO PARSELINE : " + line);
+
 
             //commandType = Parser_NO_COMMAND;
             keepGoing = true;
@@ -91,36 +103,19 @@ namespace AssemblerLab
             Console.WriteLine("Enter in the .asm file you wish to convert to .hack : ");
             string asmFileName = Console.ReadLine();
             string line;
+            StreamReader file = new StreamReader(asmFileName);
+            while ((line = file.ReadLine()) != null)
+            { //line by line each loop through
+                Console.WriteLine("FILE IS OKAY AND FOUND ! \n");
+                Console.WriteLine(line);
+                assembler.parseLine(line);
 
-            /*IN CLASS how to 
-
-            StreamReader file = new StreamReader(inFileName);
-
-
-            */
-
-            string filePath = System.IO.Path.GetFullPath( asmFileName + ".asm");
-            Console.WriteLine("FILE:  \n" + filePath);
-           StreamReader sr = new StreamReader(filePath);
-            //asmFileName = "C:\\Users\\Tegan\\Desktop\\COLLEGE WORK\\Spring 2016\\NAND2Tetris\nand2tetris\nand2tetris\\projects\06\\AssemblerLab\\" + asmFileName + ".asm";
-            //Console.WriteLine("FILE:  \n" + asmFileName);
-            if (File.Exists(filePath))
-            {
-                Console.WriteLine("YAY!");
-                //System.IO.StreamReader file = new System.IO.StreamReader(asmFileName);
-               /* while ((line = filePath.ReadLine()) != null)
-                { //line by line each loop through
-                    Console.WriteLine("FILE IS OKAY AND FOUND ! \n");
-                    asmFileName = Console.ReadLine();
-                    assembler.parseLine();
-
-                } 
-                */
-            }//end of if
-            else {//incorrect file name
+            }
+            file.Close();
+           
                 Console.WriteLine("Sorry you entered an invalid file name!\n Program terminating...\n");
                 asmFileName = Console.ReadLine(); // just here so VS window doesn't close as quick
-            }//end of else  
+ 
 
         }//end of main
 
@@ -129,9 +124,9 @@ namespace AssemblerLab
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~PASS1 FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         void pass1(char[] parsedLine)
         { //takes out white space & comments
-
+            Console.WriteLine();// TODO CHECK WHAT PARSEDLINE IS
             //purpose:  to add new (SYMBOLS) to the SymbolTable            //add the (SYMBOLS) to the SymbolTable THIS SHOULD BE IN PARSE 1????????????
-            if (parsedLine[0] == '(' && keepGoing == true)
+            if ((parsedLine[0] == '(') && (keepGoing == true))
             {
                 //read til the next ')'
                 int startIndex = line.IndexOf('(');
