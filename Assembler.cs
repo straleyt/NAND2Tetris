@@ -14,12 +14,9 @@ using System.Text.RegularExpressions;
 
 namespace AssemblerLab
 {
+
     class Assembler
     {
-      //  const string errorFileName = "AssemblerError.txt";
-      //  StreamWriter errorFile = new StreamWriter(errorFileName);
-   
-
         public Assembler()
         {
 
@@ -28,11 +25,11 @@ namespace AssemblerLab
         enum Parser_CommandType { Parser_NO_COMMAND = 0, Parser_A_COMMAND, Parser_C_COMMAND, Parser_L_COMMAND };
 
         //GLOBAL VARIABLES
-        string line;
-        string symbol;
-        string dest;
-        string comp;
-        string jump;
+        static string line;
+        static string symbol;
+        static string dest;
+        static string comp;
+        static string jump;
         Parser_CommandType commandType;
         bool keepGoing;
         bool secondTimeThrough = false; 
@@ -41,6 +38,7 @@ namespace AssemblerLab
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~PARSE FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         public int parseLine(string line, int lineNo)
         { //takes out white space & comments
+
           //set most global variables to null 
             symbol = null;
             dest = null;
@@ -56,64 +54,169 @@ namespace AssemblerLab
             string replacement = "";
             Regex regex = new Regex(pattern);
             line = regex.Replace(line, replacement); //Takes out all whitespace!
-            line.Replace(" ", string.Empty);
-            Regex rgx = new Regex("^[a-zA-Z0-9]*$@()"); //should @ be in here?
 
+            string result = null;
+            for (int i = 0; i < 200; i++)
+            {
+                result = Regex.Replace(line, @"\s+", "");
+            }
+       
             //create char array to fill with 
-            char[] parsedLine = new char[line.Length];
+            char[] parsedLine = new char[result.Length];
             int j = 0; //line counter for parsedLine
 
-            for (int i = 0; i < line.Length && keepGoing == true; i++)
+            for (int i = 0; i < result.Length && keepGoing == true; i++)
             {
-                if (line[i] == '/')
+                if (result[i] == '/')
                 {
-                    if (line[i + 1] == '/')
+                    if (result[i + 1] == '/')
                     {
                         //comment has been found! Don't copy any of the rest of the line
                         keepGoing = false; //set keepGoing to false and will fall out of for loop
                     }
                 }
-              //  else if (line[i] == '\n')
-              //  {
-              //      keepGoing = false;
-             // }
-                else if (char.IsLetterOrDigit(line[i]) || line[i] == '@' || line[i] == '(' || line[i] == ')' || line[i] == '_' || line[i] == '-' || line[i] == '$' || line[i] == '+' || line[i] == ';' || line[i] == '*' || line[i] == '/' || line[i] == '=')
+                else if (line[i] == '\n')
                 {
-                    parsedLine[j] = line[i];
+                    keepGoing = false;
+                }
+                else if (char.IsLetterOrDigit(result[i]) || result[i] == '@' || result[i] == '(' || result[i] == ')' || result[i] == '_' || result[i] == '-' || result[i] == '$' || result[i] == '+' || result[i] == ';' || result[i] == '*' || result[i] == '/' || result[i] == '=')
+                {
+                    parsedLine[j] = result[i];
                     j++; //only increment j if [a-zA-Z0-9]*$ has been found in line[i]
                 }
                 else
                 {
-                    Console.WriteLine("ERROR: cannot parse line : " + line); //error checking
+                    Console.WriteLine("ERROR: cannot parse line : " + result); //error checking
                     keepGoing = false;
                 }
-
             }
 
-
-            if (keepGoing == true && secondTimeThrough == false && parsedLine.Length != 0) //if parsedLine.Length == 0 means it's an empty array! Just skip this line.
+            int howFull = 0;
+            for(int i = 0; i < result.Length; i++)
             {
-                Console.Write("after parsing... : ");
-                for (int i = 0; i < parsedLine.Length; i++)
+                if(parsedLine[i] == '\0')
                 {
-                    Console.Write(parsedLine[i]);// TODO CHECK WHAT PARSEDLINE IS
+                    //don't add to howFull
                 }
-                Console.WriteLine();
-
-
-
-                lineNo = assembler.pass1(parsedLine, lineNo);
+                else
+                {
+                    howFull += 1;
+                }
             }
 
-         //    if(keepGoing == true && secondTimeThrough == true)
-        //     {
-        //        Console.WriteLine("GOT INTO PASS2");
-       //          assembler.pass2(parsedLine);
-        //      }
+            char[] newResult = new char[howFull];
+
+            //copy contents of parsedLine into newResult
+            for(int i = 0; i < newResult.Length; i++)
+            {
+                newResult[i] = parsedLine[i];
+            }
+
+
+            if (secondTimeThrough == false && newResult.Length != 0) //if parsedLine.Length == 0 means it's an empty array! Just skip this line.
+            {
+               /* Console.Write("after parsing... : ");
+                Console.WriteLine("newResult.Length = " + newResult.Length);
+                for (int i = 0; i < newResult.Length; i++)
+                {
+                    Console.Write(newResult[i]);// TODO CHECK WHAT PARSEDLINE IS
+                }
+                Console.WriteLine();*/
+
+                lineNo = assembler.pass1(newResult, lineNo);
+            }
+
+             if(keepGoing == true && secondTimeThrough == true && newResult.Length != 0)
+             {
+                Console.WriteLine("GOT INTO PASS2");
+                 assembler.pass2(newResult);
+              }
 
             return lineNo;
 
         }
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~PASS1 FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        int pass1(char[] parsedLine, int lineNo)
+        { //takes out white space & comments
+
+            //purpose:  to add new (SYMBOLS) to the SymbolTable            //add the (SYMBOLS) to the SymbolTable THIS SHOULD BE IN PARSE 1????????????
+            if (parsedLine[0] == '(')
+            {
+                int startIndex = 0;
+                int endIndex = parsedLine.Length;
+                string parsedString = new string(parsedLine);
+                string newSymbol = parsedString.Substring(startIndex + 1, endIndex - 2);
+                //add to dictionary
+                SymbolTable.symbolTable.Add(newSymbol, lineNo);
+                lineNo += 1; //everytime new smymbol added we need to increment lineNo 
+
+                Console.WriteLine("The symbol that was added was  : " + newSymbol + " , " + lineNo);
+            }
+            else
+            {
+
+            }
+
+            return lineNo;
+        }
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~PASS2 FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        void pass2(char[] parsedLine)
+        { //takes out white space & comments
+          //purpose to convert line (parsed line?) to binary and write each line to the outfile
+
+            Console.Write("IN pass 2... : ");
+            Console.WriteLine("parsedLine.Length = " + parsedLine.Length);
+            for (int i = 0; i < parsedLine.Length; i++)
+            {
+                Console.Write(parsedLine[i]);// TODO CHECK WHAT PARSEDLINE IS
+            }
+            Console.WriteLine();
+
+            //A INSTRUCTION
+
+            if (parsedLine[0] == '@')
+            {
+                string parsedString = new string(parsedLine);
+                int startIndex = parsedLine[0];
+                int endIndex = parsedLine.Length;
+                string aInstruc = parsedString.Substring(1, parsedString.Length - 1);
+
+                Console.WriteLine("A instruction found : " + aInstruc);
+                //check if it is in the SymbolTable.symbolTable
+                if (SymbolTable.symbolTable.ContainsKey(aInstruc))
+                {
+                    Console.ReadLine();
+
+                }
+            }//end of if
+
+            //L () INSTRUCTION
+            else if (parsedLine[0] == '(')
+            {
+                int startIndex = 0;
+                int endIndex = parsedLine.Length;
+                string parsedString = new string(parsedLine);
+                string lInstruc = parsedString.Substring(startIndex + 1, endIndex - 2);
+                Console.WriteLine("L instruction found : " + lInstruc);
+                //find in dictionary
+
+            }
+
+            //C INSTRUCTION
+
+
+
+
+
+            //open outfile 
+            //write newly formed bytecode to outputfile
+          
+
+
+        }
+
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~MAIN FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         public static void Main(string[] args)
         {
@@ -132,90 +235,38 @@ namespace AssemblerLab
             lineNo = 16;
             Console.Read();
             StreamReader fileAgain = new StreamReader(asmFileName);
+
+            //change .asm to .hack
+            char[] hackFileName = new char[asmFileName.Length - 3];
+            for (int i = 0; i < asmFileName.Length - 3; i++)
+            {
+                hackFileName[i] = asmFileName[i];
+            }
+
+            string hackFileNameString = new string(hackFileName);
+            hackFileNameString = string.Concat(hackFileNameString, "hack"); //.asm is now .hack
+            StreamWriter fileOutput = new StreamWriter(hackFileNameString);
+
             while ((line = fileAgain.ReadLine()) != null)
             { //line by line each loop through
                 lineNo = assembler.parseLine(line, lineNo);
+
+
+              //  fileOutput.Write(line);
+              //  Console.WriteLine("line to add to output file: " + line);
+
             }
+
+  
+
+    
             file.Close();
-      
         }//end of main
-
-
-
-        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~PASS1 FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        int pass1(char[] parsedLine, int lineNo)
-        { //takes out white space & comments
-
-            //purpose:  to add new (SYMBOLS) to the SymbolTable            //add the (SYMBOLS) to the SymbolTable THIS SHOULD BE IN PARSE 1????????????
-            if (parsedLine[0] == '(') 
-            {
-                int startIndex = 0;
-                int endIndex = parsedLine.Length;
-                string parsedString = new string(parsedLine);
-                string newSymbol = parsedString.Substring(startIndex + 1, endIndex - 2);
-                //add to dictionary
-                SymbolTable.symbolTable.Add(newSymbol, lineNo);
-                lineNo += 1; //everytime new smymbol added we need to increment lineNo 
-
-                Console.WriteLine("The symbol that was added was  : " + newSymbol + " , " + lineNo);
-
-                Console.Read();
-            }
-            else
-            {
-
-            }
-
-            return lineNo;
-        }
-
-        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~PASS2 FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        void pass2(char [] parsedLine)
-        { //takes out white space & comments
-            //purpose to convert line (parsed line?) to binary and write each line to the outfile
-            //A INSTRUCTION
-            if (parsedLine[0] == '@')
-            {
-                string parsedString = new string(parsedLine);
-                int startIndex = parsedLine[0];
-                int endIndex = parsedLine.Length;
-                string aInstruc = parsedString.Substring(1, parsedString.Length - 1);
-
-                Console.WriteLine("A instruction found : " + aInstruc);
-                //check if it is in the SymbolTable.symbolTable
-               // string myValue;
-              //  if (SymbolTable.symbolTable.TryGetValue(aInstruc, out myValue)) 
-            //    {
-
-             //   }
-                
-            }//end of if
-
-            //C INSTRUCTION
-
-
-
-            //L () INSTRUCTION
-            if (parsedLine[0] == '(')
-            {
-                int startIndex = 0;
-                int endIndex = parsedLine.Length;
-                string parsedString = new string(parsedLine);
-                string newSymbol = parsedString.Substring(startIndex + 1, endIndex - 2);
-
-                //find in dictionary
-
-            }
-
-
-            //open outfile 
-            //write newly formed bytecode to outputfile
-
-
-        }
     }//end of class Assembler
-}//end of namespace AssemblerLab
-        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~END OF PASS2 FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+ }//end of namespace AssemblerLab
+
+
+
         /*		
         //*********** CLASS DEC/DEF *************
         public static class ExtensionsSystem //new class to take in 
