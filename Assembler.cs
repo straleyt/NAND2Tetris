@@ -115,20 +115,11 @@ namespace AssemblerLab
 
             if (secondTimeThrough == false && newResult.Length != 0) //if parsedLine.Length == 0 means it's an empty array! Just skip this line.
             {
-               /* Console.Write("after parsing... : ");
-                Console.WriteLine("newResult.Length = " + newResult.Length);
-                for (int i = 0; i < newResult.Length; i++)
-                {
-                    Console.Write(newResult[i]);// TODO CHECK WHAT PARSEDLINE IS
-                }
-                Console.WriteLine();*/
-
                 lineNo = assembler.pass1(newResult, lineNo);
             }
 
              if(secondTimeThrough == true && newResult.Length != 0)
              {
-                Console.WriteLine("GOT INTO PASS2");
                  assembler.pass2(newResult, fileOutput);
               }
 
@@ -166,9 +157,6 @@ namespace AssemblerLab
         { //takes out white space & comments
           //purpose to convert line (parsed line?) to binary and write each line to the outfile
 
-            Console.Write("IN pass 2... : ");
-            Console.WriteLine("parsedLine.Length = " + parsedLine.Length);
-
             string finalInstruction = "0";
 
             for (int i = 0; i < parsedLine.Length; i++)
@@ -186,35 +174,29 @@ namespace AssemblerLab
                 int endIndex = parsedLine.Length;
                 string aInstruc = parsedString.Substring(1, parsedString.Length - 1);
 
-                Console.WriteLine("A instruction found : " + aInstruc);
+                //Console.WriteLine("A instruction found : " + aInstruc);
                 //check if it is in the SymbolTable.symbolTable
-                string finalABinary;
                 if (SymbolTable.symbolTable.ContainsKey(aInstruc))
                 {
-                    Console.WriteLine("A instrucion was found in symbol table...");
                     int aValue = SymbolTable.symbolTable[aInstruc];
                     var aBinary = Convert.ToString(aValue, 2);
-                    Console.WriteLine("A instrucion is binary value: " + aBinary);
 
                     while(aBinary.Length < 16)
                     {
                         aBinary = string.Concat("0", aBinary);
                     }
                     finalInstruction = aBinary;
-                    Console.WriteLine("A instrucion is binary value: " + finalInstruction); //finalABinary should be '0000 0000 0000 0000'
                 }
                 else
                 {
                     int aInstrucInt;
                     Int32.TryParse(aInstruc, out aInstrucInt);
                     var aBinary = Convert.ToString(aInstrucInt, 2);
-                    Console.WriteLine("A INSTRUC IS A NUMBER AND WAS NOT FOUND IN DICTIONARY: " + aBinary);
                     while (aBinary.Length < 16)
                     {
                         aBinary = string.Concat("0", aBinary);
                     }
                     finalInstruction = aBinary;
-                    Console.WriteLine("A instrucion is binary value: " + finalInstruction); //finalABinary should be '0000 0000 0000 0000'
 
                 }
                 Console.Read();
@@ -226,23 +208,18 @@ namespace AssemblerLab
                 int startIndex = 0;
                 int endIndex = parsedLine.Length;
                 string lInstruc = parsedString.Substring(startIndex + 1, endIndex - 2);
-                Console.WriteLine("L instruction found : " + lInstruc);
                 //find in dictionary
              
                 if (SymbolTable.symbolTable.ContainsKey(lInstruc))
                 {
-
-                    Console.WriteLine("A instrucion was found in symbol table...");
                     int lValue = SymbolTable.symbolTable[lInstruc];
                     var lBinary = Convert.ToString(lValue, 2);
-                    Console.WriteLine("L instrucion is binary value: " + lBinary);
 
                     while (lBinary.Length < 16)
                     {
                         lBinary = string.Concat("0", lBinary);
                     }
                     finalInstruction = lBinary;
-                    Console.WriteLine("L instrucion is binary value: " + finalInstruction); //finalABinary should be '0000 0000 0000 0000'
                 }
 
                 else
@@ -250,14 +227,11 @@ namespace AssemblerLab
                     int lInstrucInt;
                     Int32.TryParse(lInstruc, out lInstrucInt);
                     var lBinary = Convert.ToString(lInstrucInt, 2);
-                    Console.WriteLine("L INSTRUC IS A NUMBER AND WAS NOT FOUND IN DICTIONARY: " + lBinary);
                     while (lBinary.Length < 16)
                     {
                         lBinary = string.Concat("0", lBinary);
                     }
                     finalInstruction = lBinary;
-                    Console.WriteLine("L instrucion is binary value: " + finalInstruction); //finalABinary should be '0000 0000 0000 0000'
-
                 }
             }//end of else if L instruction
 
@@ -334,6 +308,12 @@ namespace AssemblerLab
 
             } //end of else c instruction
 
+            if(finalInstruction == "0")
+            {
+                Console.WriteLine("ERROR : final instruction could not be filled with proper hack code...");
+            }
+
+
             Console.WriteLine("finalInstruction : " + finalInstruction);
             fileOutput.WriteLine(finalInstruction);
 
@@ -346,7 +326,7 @@ namespace AssemblerLab
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~MAIN FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         public static void Main(string[] args)
         {
-            int lineNo = 16;
+            int lineNo = 15;
             Assembler assembler = new Assembler();
             Console.WriteLine("Enter in the .asm file you wish to convert to .hack : ");
             string asmFileName = Console.ReadLine();
@@ -369,7 +349,7 @@ namespace AssemblerLab
                 lineNo = assembler.parseLine(line, lineNo, fileOutput);
             }
             assembler.secondTimeThrough = true;
-            lineNo = 16;
+            lineNo = 15;
             Console.Read();
             StreamReader fileAgain = new StreamReader(asmFileName);
 
