@@ -14,15 +14,12 @@ using System.Text.RegularExpressions;
 
 namespace AssemblerLab
 {
-
     class Assembler
     {
         public Assembler()
         {
-
+            //no need of actual constructor
         }
-
-        enum Parser_CommandType { Parser_NO_COMMAND = 0, Parser_A_COMMAND, Parser_C_COMMAND, Parser_L_COMMAND };
 
         //GLOBAL VARIABLES
         static string line;
@@ -30,13 +27,33 @@ namespace AssemblerLab
         static string dest;
         static string comp;
         static string jump;
-        Parser_CommandType commandType;
         bool keepGoing;
-        bool secondTimeThrough = false; 
+        bool secondTimeThrough = false;
+        static int ramAddress = 15;
+        static int romAddress = 0;
 
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~isValidSymbol FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        public bool isValidSymbol(string str, StreamWriter logOutput) //$_:.
+        {
+            bool valid = true;
+            for (int i = 0; i < str.Length; i++)
+            {
+                if (char.IsLetterOrDigit(str[i]) || str[i] == '@' || str[i] == '.' || str[i] == '(' || str[i] == ')' || str[i] == '_' || str[i] == '-' || str[i] == '$' || str[i] == '+' || str[i] == ';' || str[i] == '*' || str[i] == '/' || str[i] == '='|| str[i] == '!' || str[i] == '|' || str[i] == '&')
+                {
+                    valid = true;
+                }
+            }
+            if (char.IsDigit(str[0]))
+            {
+                valid = false;
+            }
+            Console.WriteLine("isValidSymbol valid : " + valid);
+            logOutput.WriteLine("isValidSymbol valid : " + valid);
+            return valid;
+        }
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~PARSE FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        public int parseLine(string line, int lineNo, StreamWriter fileOutput)
+        public void parseLine(string line, StreamWriter fileOutput, StreamWriter logOutput)
         { //takes out white space & comments
 
           //set most global variables to null 
@@ -46,7 +63,6 @@ namespace AssemblerLab
             jump = null;
             Assembler assembler = new Assembler();
            
-
             //commandType = Parser_NO_COMMAND;
             keepGoing = true;
            
@@ -67,19 +83,16 @@ namespace AssemblerLab
 
             for (int i = 0; i < result.Length && keepGoing == true; i++)
             {
-                if (result[i] == '/')
+                if (result[i] == '/' && result[i + 1] == '/')
                 {
-                    if (result[i + 1] == '/')
-                    {
-                        //comment has been found! Don't copy any of the rest of the line
-                        keepGoing = false; //set keepGoing to false and will fall out of for loop
-                    }
+                    //comment has been found! Don't copy any of the rest of the line
+                    keepGoing = false; //set keepGoing to false and will fall out of for loop
                 }
-                else if (line[i] == '\n')
+                else if (result[i] == '\n')
                 {
                     keepGoing = false;
                 }
-                else if (char.IsLetterOrDigit(result[i]) || result[i] == '@' || result[i] == '(' || result[i] == ')' || result[i] == '_' || result[i] == '-' || result[i] == '$' || result[i] == '+' || result[i] == ';' || result[i] == '*' || result[i] == '/' || result[i] == '=')
+                else if (char.IsLetterOrDigit(result[i]) || result[i] == '@' || result[i] == '.' || result[i] == '(' || result[i] == ')' || result[i] == '_' || result[i] == '-' || result[i] == '$' || result[i] == '+' || result[i] == ';' || result[i] == '*' || result[i] == '/' || result[i] == '=' || result[i] == '!' || result[i] == '|' || result[i] == '&')
                 {
                     parsedLine[j] = result[i];
                     j++; //only increment j if [a-zA-Z0-9]*$ has been found in line[i]
@@ -87,6 +100,7 @@ namespace AssemblerLab
                 else
                 {
                     Console.WriteLine("ERROR: cannot parse line : " + result); //error checking
+                    logOutput.WriteLine("ERROR: cannot parse line : " + result); 
                     keepGoing = false;
                 }
             }
@@ -112,26 +126,24 @@ namespace AssemblerLab
                 newResult[i] = parsedLine[i];
             }
 
-
+            // START PASS 1
             if (secondTimeThrough == false && newResult.Length != 0) //if parsedLine.Length == 0 means it's an empty array! Just skip this line.
             {
-                lineNo = assembler.pass1(newResult, lineNo);
+                assembler.pass1(newResult, logOutput);
             }
 
-             if(secondTimeThrough == true && newResult.Length != 0)
-             {
-                 assembler.pass2(newResult, fileOutput);
-              }
-
-            return lineNo;
+            //START PASS 2
+            if (secondTimeThrough == true && newResult.Length != 0)
+            {
+                assembler.pass2(newResult, fileOutput, logOutput);
+            }
 
         }
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~PASS1 FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        int pass1(char[] parsedLine, int lineNo)
-        { //takes out white space & comments
-
-            //purpose:  to add new (SYMBOLS) to the SymbolTable            //add the (SYMBOLS) to the SymbolTable THIS SHOULD BE IN PARSE 1????????????
+        void pass1(char[] parsedLine, StreamWriter logOutput)
+        { 
+            //purpose:  to add new (SYMBOLS) to the SymbolTable     
             if (parsedLine[0] == '(')
             {
                 int startIndex = 0;
@@ -139,25 +151,25 @@ namespace AssemblerLab
                 string parsedString = new string(parsedLine);
                 string newSymbol = parsedString.Substring(startIndex + 1, endIndex - 2);
                 //add to dictionary
-                SymbolTable.symbolTable.Add(newSymbol, lineNo);
-                lineNo += 1; //everytime new smymbol added we need to increment lineNo 
+                SymbolTable.symbolTable.Add(newSymbol, romAddress);
 
-                Console.WriteLine("The symbol that was added was  : " + newSymbol + " , " + lineNo);
+                Console.WriteLine("The symbol that was added was  : " + newSymbol + " , " + romAddress);
+                logOutput.WriteLine("The symbol that was added was  : " + newSymbol + " , " + romAddress);
             }
             else
             {
-
+                romAddress++;
             }
-
-            return lineNo;
+          
         }
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~PASS2 FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        void pass2(char[] parsedLine, StreamWriter fileOutput)
+        void pass2(char[] parsedLine, StreamWriter fileOutput, StreamWriter logOutput)
         { //takes out white space & comments
           //purpose to convert line (parsed line?) to binary and write each line to the outfile
-
+           
             string finalInstruction = "0";
+            string parsedLineString = new string(parsedLine);
 
             for (int i = 0; i < parsedLine.Length; i++)
             {
@@ -169,23 +181,37 @@ namespace AssemblerLab
 
             //A INSTRUCTION
             if (parsedLine[0] == '@')
-            {
+            {       
                 int startIndex = parsedLine[0];
                 int endIndex = parsedLine.Length;
                 string aInstruc = parsedString.Substring(1, parsedString.Length - 1);
 
-                //Console.WriteLine("A instruction found : " + aInstruc);
+                Console.WriteLine("A instruction found : " + aInstruc);
+                logOutput.WriteLine("A instruction found : " + aInstruc);
+
                 //check if it is in the SymbolTable.symbolTable
                 if (SymbolTable.symbolTable.ContainsKey(aInstruc))
                 {
                     int aValue = SymbolTable.symbolTable[aInstruc];
                     var aBinary = Convert.ToString(aValue, 2);
 
-                    while(aBinary.Length < 16)
+                    while (aBinary.Length < 16)
                     {
                         aBinary = string.Concat("0", aBinary);
                     }
                     finalInstruction = aBinary;
+                }
+                else if (!SymbolTable.symbolTable.ContainsKey(aInstruc) && isValidSymbol(aInstruc, logOutput) == true) //new variable found @newvariable add to symboltable
+                {
+                    ramAddress++;
+                    SymbolTable.symbolTable.Add(aInstruc, ramAddress);
+                    var aBinary = Convert.ToString(ramAddress, 2);
+                    while (aBinary.Length < 16)
+                    {
+                        aBinary = string.Concat("0", aBinary);
+                    }
+                    finalInstruction = aBinary;
+
                 }
                 else
                 {
@@ -197,9 +223,7 @@ namespace AssemblerLab
                         aBinary = string.Concat("0", aBinary);
                     }
                     finalInstruction = aBinary;
-
                 }
-                Console.Read();
             }//end of if
 
             //L () INSTRUCTION
@@ -219,7 +243,7 @@ namespace AssemblerLab
                     {
                         lBinary = string.Concat("0", lBinary);
                     }
-                    finalInstruction = lBinary;
+                    finalInstruction = "lInstruction";
                 }
 
                 else
@@ -238,6 +262,7 @@ namespace AssemblerLab
 
             //C INSTRUCTION
             else {
+               
                 dest = "";
                 jump = "null";
                 comp = "0";
@@ -280,53 +305,62 @@ namespace AssemblerLab
                 string compValue = "101010";
                 string jumpValue = "000";
 
-
                 //dest comp and jump should be set now
                 //find dest comp and jump in dictionary
                 if (CTable.destTable.ContainsKey(dest))
                 {
                     destValue = CTable.destTable[dest];
                     Console.WriteLine("dest value is : " + destValue);
+                    logOutput.WriteLine("dest value is : " + destValue);
                 }
                 if (CTable.compTable.ContainsKey(comp))
                 {
                     compValue = CTable.compTable[comp];
                     Console.WriteLine("comp value is : " + compValue);
+                    logOutput.WriteLine("comp value is : " + compValue);
                 }
                 if (CTable.jumpTable.ContainsKey(jump))
                 {
                     jumpValue = CTable.jumpTable[jump];
                     Console.WriteLine("jump value is : " + jumpValue);
+                    logOutput.WriteLine("jump value is : " + jumpValue);
                 }
 
 
                 finalInstruction = string.Concat("111", compValue);
                 finalInstruction = string.Concat(finalInstruction, destValue);
                 finalInstruction = string.Concat(finalInstruction, jumpValue);
+              
 
-               
 
             } //end of else c instruction
 
             if(finalInstruction == "0")
             {
                 Console.WriteLine("ERROR : final instruction could not be filled with proper hack code...");
+                logOutput.WriteLine("ERROR : final instruction could not be filled with proper hack code...");
             }
-
-
-            Console.WriteLine("finalInstruction : " + finalInstruction);
-            fileOutput.WriteLine(finalInstruction);
-
+            else if (finalInstruction == "lInstruction")
+            {
+                Console.WriteLine("This line was an lInstruction");
+                logOutput.WriteLine("This line was an lInstruction");
+            }
+            else
+            {
+                Console.WriteLine("finalInstruction : " + finalInstruction);
+                logOutput.WriteLine("finalInstruction : " + finalInstruction);
+                fileOutput.WriteLine(finalInstruction);
+            }
 
             //open outfile 
             //write newly formed bytecode to outputfile
+             
 
         }
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~MAIN FUNCTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         public static void Main(string[] args)
         {
-            int lineNo = 15;
             Assembler assembler = new Assembler();
             Console.WriteLine("Enter in the .asm file you wish to convert to .hack : ");
             string asmFileName = Console.ReadLine();
@@ -337,61 +371,37 @@ namespace AssemblerLab
             char[] hackFileName = new char[asmFileName.Length - 3];
             for (int i = 0; i < asmFileName.Length - 3; i++)
             {
+
                 hackFileName[i] = asmFileName[i];
             }
 
             string hackFileNameString = new string(hackFileName);
+            string logFileNameString = new string(hackFileName);
+            logFileNameString = string.Concat(hackFileNameString, "log"); //making a .log to fill with same as what we Console.WriteLine();
             hackFileNameString = string.Concat(hackFileNameString, "hack"); //.asm is now .hack
             System.IO.StreamWriter fileOutput = new System.IO.StreamWriter(hackFileNameString);
+            System.IO.StreamWriter logOutput = new System.IO.StreamWriter(logFileNameString);
 
             while ((line = file.ReadLine()) != null)
             { //line by line each loop through
-                lineNo = assembler.parseLine(line, lineNo, fileOutput);
+                assembler.parseLine(line, fileOutput, logOutput);
             }
+
             assembler.secondTimeThrough = true;
-            lineNo = 15;
+            romAddress = 0;
+            ramAddress = 15;
             Console.Read();
             StreamReader fileAgain = new StreamReader(asmFileName);
 
-          
             while ((line = fileAgain.ReadLine()) != null)
             { //line by line each loop through
-                lineNo = assembler.parseLine(line, lineNo, fileOutput);
-
+                assembler.parseLine(line, fileOutput, logOutput);
             }
 
             file.Close();
+            fileOutput.Close();
+            logOutput.Close(); //this is a text file to store messages and any error messages 
         }//end of main
     }//end of class Assembler
  }//end of namespace AssemblerLab
 
-
-
-        /*		
-        //*********** CLASS DEC/DEF *************
-        public static class ExtensionsSystem //new class to take in 
-        {
-            List<string> StripComments(this string inputFileList) //takes in the input file
-            {
-                List<string> result = new List<string>(inputFileList.Split(new string[] {"\r", "\n"}, 
-                StringSplitOptions.RemoveEmptyEntries) 
-                ); //uses array to look through file
-            result = result
-                .Where(line => !(line.StartsWith("//") || line.StartsWith("#"))) // where there is a line comment
-                .ToList(); // not sure...
-
-                return result; 
-
-            }//end of StripComments definition
-
-        }//end of class dec/def
-             }//end of Assembler
-        }//end of namespace
-        //**** Options? ****
-        // Found this, we could write to a new file that exclused both white space and comments
-        // var t= Path.GetTempFileName();
-        // var l= File.ReadLines(fileName).Where(l => !l.StartsWith("//") || !l.StartsWith("#"));
-        // File.WriteAllLines(t, l);
-        // File.Delete(fileName);
-        // File.Move(t, fileName);
-        */
